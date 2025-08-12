@@ -3,15 +3,12 @@
 # Pet Store Demo Setup Script
 # This script sets up the pet store demo environment with Oracle client and Python scripts
 
-set -e  # Exit on any error
+set -e # Exit on any error
 
 # Default values
 DEFAULT_HOST="127.0.0.1"
 DEFAULT_PORT="1521"
-DEFAULT_SERVICE="PDBORCL56"
-DEFAULT_USER="master"
-DEFAULT_PASSWORD="Tessell123ZX#"
-DEFAULT_ORACLE_CLIENT_LIB="/home/azureuser/pet_store_demo/oracle/instantclient_23_9"
+DEFAULT_ORACLE_CLIENT_LIB="$HOME/pet_store_demo/oracle/instantclient_23_9"
 DEFAULT_INITIAL_CUSTOMERS="10000"
 DEFAULT_INITIAL_PRODUCTS="5000"
 DEFAULT_ORDER_INTERVAL="1"
@@ -19,40 +16,40 @@ DEFAULT_ORDERS_PER_INTERVAL="50"
 DEFAULT_PRODUCT_INTERVAL="2"
 DEFAULT_PRODUCTS_PER_INTERVAL="25"
 DEFAULT_INITIAL_DATATYPES_DEMO="10"
-DEFAULT_BASE_DIR="/home/azureuser"
+DEFAULT_BASE_DIR="$HOME"
 
 # Function to show usage
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --host HOST                    Database host (default: $DEFAULT_HOST)"
-    echo "  --port PORT                    Database port (default: $DEFAULT_PORT)"
-    echo "  --service SERVICE              Database service name (default: $DEFAULT_SERVICE)"
-    echo "  --user USER                    Database user (default: $DEFAULT_USER)"
-    echo "  --password PASSWORD            Database password (default: $DEFAULT_PASSWORD)"
-    echo "  --oracle-client-lib PATH       Oracle client library path (default: $DEFAULT_ORACLE_CLIENT_LIB)"
-    echo "  --initial-customers NUM        Initial number of customers (default: $DEFAULT_INITIAL_CUSTOMERS)"
-    echo "  --initial-products NUM         Initial number of products (default: $DEFAULT_INITIAL_PRODUCTS)"
-    echo "  --order-interval SECONDS       Order generation interval (default: $DEFAULT_ORDER_INTERVAL)"
-    echo "  --orders-per-interval NUM      Orders per interval (default: $DEFAULT_ORDERS_PER_INTERVAL)"
-    echo "  --product-interval SECONDS     Product generation interval (default: $DEFAULT_PRODUCT_INTERVAL)"
-    echo "  --products-per-interval NUM    Products per interval (default: $DEFAULT_PRODUCTS_PER_INTERVAL)"
-    echo "  --initial-datatypes-demo NUM   Initial datatypes demo records (default: $DEFAULT_INITIAL_DATATYPES_DEMO)"
-    echo "  --base-dir PATH                Base directory path (default: $DEFAULT_BASE_DIR)"
-    echo "  --drop-existing                Drop existing schema (flag)"
-    echo "  --help                         Show this help message"
+    echo "  --host HOST             Database host (default: $DEFAULT_HOST)"
+    echo "  --port PORT             Database port (default: $DEFAULT_PORT)"
+    echo "  --service SERVICE       Database service name (required)"
+    echo "  --user USER             Database user (required)"
+    echo "  --password PASSWORD     Database password (required)"
+    echo "  --oracle-client-lib PATH    Oracle client library path (default: $DEFAULT_ORACLE_CLIENT_LIB)"
+    echo "  --initial-customers NUM     Initial number of customers (default: $DEFAULT_INITIAL_CUSTOMERS)"
+    echo "  --initial-products NUM      Initial number of products (default: $DEFAULT_INITIAL_PRODUCTS)"
+    echo "  --order-interval SECONDS    Order generation interval (default: $DEFAULT_ORDER_INTERVAL)"
+    echo "  --orders-per-interval NUM   Orders per interval (default: $DEFAULT_ORDERS_PER_INTERVAL)"
+    echo "  --product-interval SECONDS  Product generation interval (default: $DEFAULT_PRODUCT_INTERVAL)"
+    echo "  --products-per-interval NUM Products per interval (default: $DEFAULT_PRODUCTS_PER_INTERVAL)"
+    echo "  --initial-datatypes-demo NUM  Initial datatypes demo records (default: $DEFAULT_INITIAL_DATATYPES_DEMO)"
+    echo "  --base-dir PATH         Base directory path (default: $DEFAULT_BASE_DIR)"
+    echo "  --drop-existing         Drop existing schema (flag)"
+    echo "  --help                  Show this help message"
     echo ""
     echo "Example:"
-    echo "  $0 --host localhost --user myuser --password mypass --initial-customers 5000"
+    echo "  $0 --service PDBORCL56 --user master --password 'Tessell123ZX#' --host localhost --initial-customers 5000"
 }
 
 # Initialize variables with defaults
 HOST="$DEFAULT_HOST"
 PORT="$DEFAULT_PORT"
-SERVICE="$DEFAULT_SERVICE"
-USER="$DEFAULT_USER"
-PASSWORD="$DEFAULT_PASSWORD"
+SERVICE=""
+USER=""
+PASSWORD=""
 ORACLE_CLIENT_LIB="$DEFAULT_ORACLE_CLIENT_LIB"
 INITIAL_CUSTOMERS="$DEFAULT_INITIAL_CUSTOMERS"
 INITIAL_PRODUCTS="$DEFAULT_INITIAL_PRODUCTS"
@@ -138,6 +135,25 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Validate required parameters
+if [[ -z "$SERVICE" ]]; then
+    echo "Error: --service is required"
+    show_usage
+    exit 1
+fi
+
+if [[ -z "$USER" ]]; then
+    echo "Error: --user is required"
+    show_usage
+    exit 1
+fi
+
+if [[ -z "$PASSWORD" ]]; then
+    echo "Error: --password is required"
+    show_usage
+    exit 1
+fi
 
 echo "Starting Pet Store Demo Setup..."
 echo "Configuration:"
