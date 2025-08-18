@@ -494,21 +494,31 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         timestamp_tz_col = datetime.now().astimezone()
         timestamp_tz_precision = datetime.now().astimezone()
 
-        # Generate INTERVAL data properly for Oracle
-        # For YEAR TO MONTH intervals - create as timedelta representing months
-        months_1 = random.randint(1, 1199)  # 1 to 99 years 11 months
-        months_2 = random.randint(1, 99999)  # For precision version
+        # Generate INTERVAL data as strings that will be embedded in SQL
+        # INTERVAL YEAR TO MONTH
+        years_1 = random.randint(0, 99)
+        months_1 = random.randint(0, 11)
+        years_2 = random.randint(0, 9999)
+        months_2 = random.randint(0, 11)
 
-        # For DAY TO SECOND intervals - use timedelta objects
-        days = random.randint(1, 99)
-        hours = random.randint(0, 23)
-        minutes = random.randint(0, 59)
-        seconds = random.randint(0, 59)
-        microseconds = random.randint(0, 999999)
+        # Format as Oracle INTERVAL literals
+        interval_ym_str = f"INTERVAL '{years_1}-{months_1:02d}' YEAR TO MONTH"
+        interval_ym_precision_str = f"INTERVAL '{years_2:04d}-{months_2:02d}' YEAR(4) TO MONTH"
 
-        interval_ds_col = timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
-        interval_ds_precision = timedelta(days=days, hours=hours, minutes=minutes,
-                                          seconds=seconds, microseconds=microseconds)
+        # INTERVAL DAY TO SECOND
+        days_1 = random.randint(0, 99)
+        hours_1 = random.randint(0, 23)
+        minutes_1 = random.randint(0, 59)
+        seconds_1 = random.randint(0, 59)
+
+        days_2 = random.randint(0, 99)
+        hours_2 = random.randint(0, 23)
+        minutes_2 = random.randint(0, 59)
+        seconds_2 = random.randint(0, 59)
+        microseconds_2 = random.randint(0, 999999)
+
+        interval_ds_str = f"INTERVAL '{days_1} {hours_1:02d}:{minutes_1:02d}:{seconds_1:02d}' DAY TO SECOND"
+        interval_ds_precision_str = f"INTERVAL '{days_2} {hours_2:02d}:{minutes_2:02d}:{seconds_2:02d}.{microseconds_2:06d}' DAY TO SECOND(6)"
 
         # Fixed-length strings with proper padding
         char_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
@@ -516,8 +526,8 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         nchar_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
         nchar_large_col = fake.text(max_nb_chars=1000)  # For NCHAR_LARGE_COLUMN
 
-        # SQL statement using Oracle's INTERVAL constructors for YEAR TO MONTH intervals
-        sql = """INSERT INTO oracle_datatypes_demo (
+        # Build SQL with INTERVAL literals embedded directly
+        sql = f"""INSERT INTO oracle_datatypes_demo (
                     varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
                     number_column, number_precision_column, number_integer_column,
                     float_column, float_precision_column, long_column,
@@ -527,17 +537,17 @@ def insert_single_datatypes_demo_record(cur, conn, i):
                     char_column, char_large_column, nchar_column, nchar_large_column
                  ) VALUES (
                     :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
-                    NUMTOYMINTERVAL(:18, 'MONTH'), NUMTOYMINTERVAL(:19, 'MONTH'), :20, :21, :22, :23, :24, :25
+                    {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
+                    :18, :19, :20, :21
                  )"""
 
-        # Execute the insert with all parameters
+        # Execute the insert - note we have fewer parameters now since intervals are in SQL
         cur.execute(sql, (
             varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
             number_col, number_precision_col, number_integer_col,
             float_col, float_precision_col, long_col,
             date_col, binary_float_col, binary_double_col,
             timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
-            months_1, months_2, interval_ds_col, interval_ds_precision,
             char_col, char_large_col, nchar_col, nchar_large_col
         ))
 
