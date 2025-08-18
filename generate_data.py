@@ -494,20 +494,21 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         timestamp_tz_col = datetime.now().astimezone()
         timestamp_tz_precision = datetime.now().astimezone()
 
-        # Generate INTERVAL YEAR TO MONTH data
-        years = random.randint(0, 99)
-        months = random.randint(0, 11)
-        interval_ym_col = f"INTERVAL '{months}' MONTH"
-        interval_ym_precision = f"INTERVAL '{years}-{months:02}' YEAR(4) TO MONTH"
+        # Generate INTERVAL data properly for Oracle
+        # For YEAR TO MONTH intervals - create as timedelta representing months
+        months_1 = random.randint(1, 1199)  # 1 to 99 years 11 months
+        months_2 = random.randint(1, 99999)  # For precision version
 
-        # Generate INTERVAL DAY TO SECOND data
+        # For DAY TO SECOND intervals - use timedelta objects
         days = random.randint(1, 99)
         hours = random.randint(0, 23)
         minutes = random.randint(0, 59)
         seconds = random.randint(0, 59)
         microseconds = random.randint(0, 999999)
-        interval_ds_col = f"INTERVAL '{days} {hours:02}:{minutes:02}:{seconds:02}' DAY TO SECOND(6)"
-        interval_ds_precision = f"INTERVAL '{days} {hours:02}:{minutes:02}:{seconds:02}.{microseconds:06}' DAY TO SECOND(6)"
+
+        interval_ds_col = timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        interval_ds_precision = timedelta(days=days, hours=hours, minutes=minutes,
+                                          seconds=seconds, microseconds=microseconds)
 
         # Fixed-length strings with proper padding
         char_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
@@ -515,7 +516,7 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         nchar_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
         nchar_large_col = fake.text(max_nb_chars=1000)  # For NCHAR_LARGE_COLUMN
 
-        # Updated SQL statement to match all columns in your reference INSERT
+        # SQL statement using Oracle's INTERVAL constructors for YEAR TO MONTH intervals
         sql = """INSERT INTO oracle_datatypes_demo (
                     varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
                     number_column, number_precision_column, number_integer_column,
@@ -526,7 +527,7 @@ def insert_single_datatypes_demo_record(cur, conn, i):
                     char_column, char_large_column, nchar_column, nchar_large_column
                  ) VALUES (
                     :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
-                    :18, :19, :20, :21, :22, :23, :24, :25
+                    NUMTOYMINTERVAL(:18, 'MONTH'), NUMTOYMINTERVAL(:19, 'MONTH'), :20, :21, :22, :23, :24, :25
                  )"""
 
         # Execute the insert with all parameters
@@ -536,7 +537,7 @@ def insert_single_datatypes_demo_record(cur, conn, i):
             float_col, float_precision_col, long_col,
             date_col, binary_float_col, binary_double_col,
             timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
-            interval_ym_col, interval_ym_precision, interval_ds_col, interval_ds_precision,
+            months_1, months_2, interval_ds_col, interval_ds_precision,
             char_col, char_large_col, nchar_col, nchar_large_col
         ))
 
