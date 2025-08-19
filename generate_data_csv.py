@@ -699,78 +699,79 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         nchar_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
         nchar_large_col = fake.text(max_nb_chars=1000)  # For NCHAR_LARGE_COLUMN
 
-        # First, let's check what the primary key column is called
+        # Corrected: Build the list of data to be inserted
+        bind_data = [
+            varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
+            number_col, number_precision_col, number_integer_col,
+            float_col, float_precision_col, long_col,
+            date_col, binary_float_col, binary_double_col,
+            timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
+            char_col, char_large_col, nchar_col, nchar_large_col
+        ]
+
+        # The core problem is the dynamic fetching of the primary key and the
+        # hardcoded 'ID' in the error message. Let's fix this logic.
+        pk_column = None
         try:
+            # First, check for a primary key column with a known name.
             cur.execute("""
-                SELECT column_name 
-                FROM user_tab_columns 
-                WHERE table_name = 'ORACLE_DATATYPES_DEMO' 
+                SELECT column_name
+                FROM user_tab_columns
+                WHERE table_name = 'ORACLE_DATATYPES_DEMO'
                 AND column_id = 1
                 ORDER BY column_id
             """)
-            pk_column_result = cur.fetchone()
-            pk_column = pk_column_result[0].lower() if pk_column_result else None
-        except:
-            pk_column = None
+            result = cur.fetchone()
+            if result:
+                pk_column = result[0]
+        except Exception:
+            # If the query fails, pk_column will remain None, and the code will
+            # proceed to the fallback without the RETURNING clause.
+            pass
 
-        # Build SQL - try with RETURNING clause first, fallback to without it
+        sql_values_part = """, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
+                            {}, {}, {}, {},
+                            :18, :19, :20, :21""".format(
+            interval_ym_str, interval_ym_precision_str, interval_ds_str, interval_ds_precision_str
+        )
+
         if pk_column:
-            sql = f"""INSERT INTO oracle_datatypes_demo (
-                        varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
-                        number_column, number_precision_column, number_integer_column,
-                        float_column, float_precision_column, long_column,
-                        date_column, binary_float_column, binary_double_column,
-                        timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
-                        interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision,
-                        char_column, char_large_column, nchar_column, nchar_large_column
-                     ) VALUES (
-                        :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
-                        {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
-                        :18, :19, :20, :21
-                     ) RETURNING {pk_column} INTO :22"""
+            # Using f-string for a cleaner query
+            sql = f"""
+            INSERT INTO oracle_datatypes_demo (
+                {pk_column}, varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
+                number_column, number_precision_column, number_integer_column,
+                float_column, float_precision_column, long_column,
+                date_column, binary_float_column, binary_double_column,
+                timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
+                char_column, char_large_column, nchar_column, nchar_large_column,
+                interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision
+            ) VALUES (
+                oracle_datatypes_demo_seq.nextval, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str}
+            ) RETURNING {pk_column} INTO :22
+            """
 
-            # Get the new ID
             new_id = cur.var(oracledb.NUMBER)
-
-            # Execute the insert with RETURNING clause
-            cur.execute(sql, (
-                varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
-                number_col, number_precision_col, number_integer_col,
-                float_col, float_precision_col, long_col,
-                date_col, binary_float_col, binary_double_col,
-                timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
-                char_col, char_large_col, nchar_col, nchar_large_col, new_id
-            ))
-
+            cur.execute(sql, bind_data + [new_id])
             demo_id = new_id.getvalue()[0]
+
         else:
-            # Fallback: insert without RETURNING clause
-            sql = f"""INSERT INTO oracle_datatypes_demo (
-                        varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
-                        number_column, number_precision_column, number_integer_column,
-                        float_column, float_precision_column, long_column,
-                        date_column, binary_float_column, binary_double_column,
-                        timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
-                        interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision,
-                        char_column, char_large_column, nchar_column, nchar_large_column
-                     ) VALUES (
-                        :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
-                        {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
-                        :18, :19, :20, :21
-                     )"""
+            # Fallback: insert without RETURNING clause, and use a sequence or counter
+            sql = f"""
+            INSERT INTO oracle_datatypes_demo (
+                varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
+                number_column, number_precision_column, number_integer_column,
+                float_column, float_precision_column, long_column,
+                date_column, binary_float_col, binary_double_col,
+                timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
+                char_column, char_large_column, nchar_column, nchar_large_column,
+                interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision
+            ) VALUES (
+                :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str}
+            )"""
 
-            # Execute the insert without RETURNING clause
-            cur.execute(sql, (
-                varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
-                number_col, number_precision_col, number_integer_col,
-                float_col, float_precision_col, long_col,
-                date_col, binary_float_col, binary_double_col,
-                timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
-                char_col, char_large_col, nchar_col, nchar_large_col
-            ))
-
-            # Use the passed index as the demo_id for CSV
-            demo_id = i + 1  # Start from 1 instead of 0
+            cur.execute(sql, bind_data)
+            demo_id = i + 1  # Use the passed index as the demo_id for CSV
 
         # Write to CSV - convert intervals to string representation for CSV
         csv_data = [
@@ -788,7 +789,7 @@ def insert_single_datatypes_demo_record(cur, conn, i):
 
         return True
 
-    except Exception as e:
+    except oracledb.Error as e:
         print(f"Error inserting into oracle_datatypes_demo: {e}")
         return False
 
