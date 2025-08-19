@@ -17,6 +17,7 @@ DEFAULT_PRODUCT_INTERVAL="2"
 DEFAULT_PRODUCTS_PER_INTERVAL="25"
 DEFAULT_INITIAL_DATATYPES_DEMO="10"
 DEFAULT_BASE_DIR="$HOME"
+CSV_OUT_PUT_DIR="$HOME/pet_store_demo"
 
 # Function to show usage
 show_usage() {
@@ -203,11 +204,11 @@ pip install oracledb
 # Download Python scripts from GitHub repository
 echo "Downloading Python scripts from GitHub repository..."
 wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/create_schema.py
-wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/generate_data.py
+wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/generate_data_csv.py
 wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/row_count.py
 
 # Make scripts executable (optional)
-chmod +x create_schema.py generate_data.py row_count.py
+chmod +x create_schema.py generate_data_csv.py row_count.py
 
 echo "Setup completed successfully!"
 echo "Environment variables set:"
@@ -243,7 +244,7 @@ python3 generate_data_csv.py \
   --product-interval "$PRODUCT_INTERVAL" \
   --products-per-interval "$PRODUCTS_PER_INTERVAL" \
   --initial-datatypes-demo "$INITIAL_DATATYPES_DEMO" \
-  --csv-output-dir "$DEFAULT_BASE_DIR"
+  --csv-output-dir "$CSV_OUT_PUT_DIR"
 
 echo "3. Checking row counts..."
 python3 row_count.py \

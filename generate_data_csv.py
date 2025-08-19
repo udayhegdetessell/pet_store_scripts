@@ -699,35 +699,78 @@ def insert_single_datatypes_demo_record(cur, conn, i):
         nchar_col = fake.word()[:10].ljust(10)  # Ensure exactly 10 chars
         nchar_large_col = fake.text(max_nb_chars=1000)  # For NCHAR_LARGE_COLUMN
 
-        # Build SQL with INTERVAL literals embedded directly
-        sql = f"""INSERT INTO oracle_datatypes_demo (
-                    varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
-                    number_column, number_precision_column, number_integer_column,
-                    float_column, float_precision_column, long_column,
-                    date_column, binary_float_column, binary_double_column,
-                    timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
-                    interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision,
-                    char_column, char_large_column, nchar_column, nchar_large_column
-                 ) VALUES (
-                    :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
-                    {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
-                    :18, :19, :20, :21
-                 ) RETURNING id INTO :22"""
+        # First, let's check what the primary key column is called
+        try:
+            cur.execute("""
+                SELECT column_name 
+                FROM user_tab_columns 
+                WHERE table_name = 'ORACLE_DATATYPES_DEMO' 
+                AND column_id = 1
+                ORDER BY column_id
+            """)
+            pk_column_result = cur.fetchone()
+            pk_column = pk_column_result[0].lower() if pk_column_result else None
+        except:
+            pk_column = None
 
-        # Get the new ID
-        new_id = cur.var(oracledb.NUMBER)
+        # Build SQL - try with RETURNING clause first, fallback to without it
+        if pk_column:
+            sql = f"""INSERT INTO oracle_datatypes_demo (
+                        varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
+                        number_column, number_precision_column, number_integer_column,
+                        float_column, float_precision_column, long_column,
+                        date_column, binary_float_column, binary_double_column,
+                        timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
+                        interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision,
+                        char_column, char_large_column, nchar_column, nchar_large_column
+                     ) VALUES (
+                        :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
+                        {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
+                        :18, :19, :20, :21
+                     ) RETURNING {pk_column} INTO :22"""
 
-        # Execute the insert - note we have fewer parameters now since intervals are in SQL
-        cur.execute(sql, (
-            varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
-            number_col, number_precision_col, number_integer_col,
-            float_col, float_precision_col, long_col,
-            date_col, binary_float_col, binary_double_col,
-            timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
-            char_col, char_large_col, nchar_col, nchar_large_col, new_id
-        ))
+            # Get the new ID
+            new_id = cur.var(oracledb.NUMBER)
 
-        demo_id = new_id.getvalue()[0]
+            # Execute the insert with RETURNING clause
+            cur.execute(sql, (
+                varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
+                number_col, number_precision_col, number_integer_col,
+                float_col, float_precision_col, long_col,
+                date_col, binary_float_col, binary_double_col,
+                timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
+                char_col, char_large_col, nchar_col, nchar_large_col, new_id
+            ))
+
+            demo_id = new_id.getvalue()[0]
+        else:
+            # Fallback: insert without RETURNING clause
+            sql = f"""INSERT INTO oracle_datatypes_demo (
+                        varchar2_column, varchar2_large_column, nvarchar2_column, nvarchar2_large_column,
+                        number_column, number_precision_column, number_integer_column,
+                        float_column, float_precision_column, long_column,
+                        date_column, binary_float_column, binary_double_column,
+                        timestamp_column, timestamp_precision_column, timestamp_tz_column, timestamp_tz_precision,
+                        interval_ym_column, interval_ym_precision, interval_ds_column, interval_ds_precision,
+                        char_column, char_large_column, nchar_column, nchar_large_column
+                     ) VALUES (
+                        :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17,
+                        {interval_ym_str}, {interval_ym_precision_str}, {interval_ds_str}, {interval_ds_precision_str},
+                        :18, :19, :20, :21
+                     )"""
+
+            # Execute the insert without RETURNING clause
+            cur.execute(sql, (
+                varchar2_col, varchar2_large_col, nvarchar2_col, nvarchar2_large_col,
+                number_col, number_precision_col, number_integer_col,
+                float_col, float_precision_col, long_col,
+                date_col, binary_float_col, binary_double_col,
+                timestamp_col, timestamp_precision_col, timestamp_tz_col, timestamp_tz_precision,
+                char_col, char_large_col, nchar_col, nchar_large_col
+            ))
+
+            # Use the passed index as the demo_id for CSV
+            demo_id = i + 1  # Start from 1 instead of 0
 
         # Write to CSV - convert intervals to string representation for CSV
         csv_data = [
