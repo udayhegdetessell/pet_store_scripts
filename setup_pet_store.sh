@@ -229,7 +229,7 @@ python3 create_schema.py \
   $DROP_EXISTING
 
 echo "2. Generating data..."
-python3 generate_data.py \
+python3 generate_data_csv.py \
   --host "$HOST" \
   --port "$PORT" \
   --service "$SERVICE" \
@@ -242,7 +242,8 @@ python3 generate_data.py \
   --orders-per-interval "$ORDERS_PER_INTERVAL" \
   --product-interval "$PRODUCT_INTERVAL" \
   --products-per-interval "$PRODUCTS_PER_INTERVAL" \
-  --initial-datatypes-demo "$INITIAL_DATATYPES_DEMO"
+  --initial-datatypes-demo "$INITIAL_DATATYPES_DEMO" \
+  --csv-output-dir "$DEFAULT_BASE_DIR"
 
 echo "3. Checking row counts..."
 python3 row_count.py \
