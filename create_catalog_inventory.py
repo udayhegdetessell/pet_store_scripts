@@ -264,7 +264,7 @@ def generate_items_data(cur, num_rows, verbose=False):
     
     for i in range(num_rows):
         catalog_id, inventory_id = random.choice(id_pairs)
-        item_name = fake.product_name()
+        item_name = fake.catch_phrase()
         sku = f"SKU-{fake.unique.random_number(digits=8)}"
         price = round(random.uniform(10.0, 1000.0), 2)
         cost = round(price * random.uniform(0.3, 0.7), 2)
