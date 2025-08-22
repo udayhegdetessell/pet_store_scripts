@@ -18,6 +18,9 @@ except ImportError:
 # Initialize Faker
 fake = Faker()
 
+# Hardcoded table name for items
+ITEMS_TABLE_NAME = 'store_items'
+
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -95,9 +98,9 @@ def get_db_connection(host, port, service, user, password, oracle_client_lib=Non
         print(f"Database connection failed: ORA-{getattr(e, 'code', 'N/A')}: {getattr(e, 'message', str(e))}")
         raise
 
-def drop_existing_tables(cur, verbose=False):
+def drop_existing_tables(cur, verbose=False, items_table_name='items'):
     """Drop existing tables if they exist."""
-    tables = ['items', 'inventory', 'catalog']
+    tables = [items_table_name, 'inventory', 'catalog']
     
     for table in tables:
         try:
@@ -108,7 +111,7 @@ def drop_existing_tables(cur, verbose=False):
             if getattr(e, 'code', None) != 942:  # Table doesn't exist
                 print(f"  Warning: Error dropping table {table}: ORA-{getattr(e, 'code', 'N/A')}: {getattr(e, 'message', str(e))}")
 
-def create_tables(cur, verbose=False):
+def create_tables(cur, verbose=False, items_table_name='items'):
     """Create the catalog, inventory, and items tables."""
     
     # Create catalog table
@@ -139,8 +142,8 @@ def create_tables(cur, verbose=False):
     """
     
     # Create items table
-    items_sql = """
-    CREATE TABLE items (
+    items_sql = f"""
+    CREATE TABLE {items_table_name} (
         item_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         catalog_id NUMBER NOT NULL,
         inventory_id NUMBER NOT NULL,
@@ -178,9 +181,9 @@ def create_tables(cur, verbose=False):
         print(f"Error creating tables: ORA-{getattr(e, 'code', 'N/A')}: {getattr(e, 'message', str(e))}")
         raise
 
-def truncate_tables(cur, verbose=False):
+def truncate_tables(cur, verbose=False, items_table_name='items'):
     """Truncate all tables."""
-    tables = ['items', 'inventory', 'catalog']
+    tables = [items_table_name, 'inventory', 'catalog']
     
     for table in tables:
         try:
@@ -247,7 +250,7 @@ def generate_inventory_data(cur, num_rows, verbose=False):
     
     print(f"  Completed: {num_rows} inventory records")
 
-def generate_items_data(cur, num_rows, verbose=False):
+def generate_items_data(cur, num_rows, verbose=False, items_table_name='items'):
     """Generate and insert items data."""
     print(f"Generating {num_rows} items records...")
     
@@ -273,8 +276,8 @@ def generate_items_data(cur, num_rows, verbose=False):
         color = random.choice(colors)
         brand = random.choice(brands)
         
-        sql = """
-        INSERT INTO items (catalog_id, inventory_id, item_name, sku, price, cost, weight_kg, dimensions, color, brand)
+        sql = f"""
+        INSERT INTO {items_table_name} (catalog_id, inventory_id, item_name, sku, price, cost, weight_kg, dimensions, color, brand)
         VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10)
         """
         
@@ -297,7 +300,7 @@ def main():
     if args.dry_run:
         print("=== DRY RUN MODE ===")
         print(f"Would connect to: {args.host}:{args.port}/{args.service}")
-        print(f"Would create: {args.catalog_rows} catalog, {args.inventory_rows} inventory, {args.items_rows} items records")
+        print(f"Would create: {args.catalog_rows} catalog, {args.inventory_rows} inventory, {args.items_rows} items records into table '{ITEMS_TABLE_NAME}'")
         if args.drop_existing:
             print("Would drop existing tables")
         if not args.no_truncate:
@@ -315,8 +318,8 @@ def main():
         # Drop existing tables if requested
         if args.drop_existing:
             print("Dropping existing tables...")
-            drop_existing_tables(cur, args.verbose)
-            create_tables(cur, args.verbose)
+            drop_existing_tables(cur, args.verbose, ITEMS_TABLE_NAME)
+            create_tables(cur, args.verbose, ITEMS_TABLE_NAME)
         else:
             # Check if tables exist, create if they don't
             try:
@@ -324,12 +327,12 @@ def main():
                 print("Tables already exist.")
             except oracledb.Error:
                 print("Creating tables...")
-                create_tables(cur, args.verbose)
+                create_tables(cur, args.verbose, ITEMS_TABLE_NAME)
         
         # Truncate tables if not preserving data
         if not args.no_truncate:
             print("Truncating existing tables...")
-            truncate_tables(cur, args.verbose)
+            truncate_tables(cur, args.verbose, ITEMS_TABLE_NAME)
         else:
             print("Preserving existing data...")
         
@@ -337,24 +340,24 @@ def main():
         print("\nGenerating data...")
         generate_catalog_data(cur, args.catalog_rows, args.verbose)
         generate_inventory_data(cur, args.inventory_rows, args.verbose)
-        generate_items_data(cur, args.items_rows, args.verbose)
+        generate_items_data(cur, args.items_rows, args.verbose, ITEMS_TABLE_NAME)
         
         # Commit all changes
         conn.commit()
         print("\nAll data generated and committed successfully!")
         
         # Show summary
-        cur.execute("SELECT COUNT(*) FROM catalog")
+        cur.execute(f"SELECT COUNT(*) FROM catalog")
         catalog_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM inventory")
+        cur.execute(f"SELECT COUNT(*) FROM inventory")
         inventory_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM items")
+        cur.execute(f"SELECT COUNT(*) FROM {ITEMS_TABLE_NAME}")
         items_count = cur.fetchone()[0]
         
         print(f"\nFinal row counts:")
         print(f"  Catalog: {catalog_count}")
         print(f"  Inventory: {inventory_count}")
-        print(f"  Items: {items_count}")
+        print(f"  {ITEMS_TABLE_NAME}: {items_count}")
         
         cur.close()
         conn.close()
