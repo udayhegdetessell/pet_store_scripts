@@ -167,6 +167,37 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --drop-existing
 ```
 
+** Catalog DB: To drop existing tables and start fresh:**
+```bash
+python3 create_catalog_inventory.py \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --catalog-rows 100 \
+  --inventory-rows 200 \
+  --items-rows 500 \
+  --drop-existing
+```
+
+** Catalog DB: To preserve existing data (append mode):
+``` bash
+python3 create_catalog_inventory.py \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --catalog-rows 100 \
+  --inventory-rows 200 \
+  --items-rows 500 \
+  --no-truncate
+```
+
+
 ## Environment Variables
 
 The script automatically sets up the following environment variables:
