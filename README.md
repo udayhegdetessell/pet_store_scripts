@@ -140,8 +140,8 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --service CUSTOMPDB \
   --user pet_admin \
   --password "CustomPass123!" \
-  --base-dir /home/demo \
-  --oracle-client-lib /home/demo/pet_store_demo/oracle/instantclient_23_9 \
+  --base-dir /home/azureuser \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
   --initial-customers 25000 \
   --initial-products 12000 \
   --order-interval 2 \
