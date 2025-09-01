@@ -132,6 +132,21 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --password "DemoPass2024#"
 ```
 
+**Keep existing schema AND data
+```bash
+./setup_pet_store.sh \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --base-dir /home/azureuser \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --initial-customers 25000 \
+  --initial-products 12000 \
+  --no-truncate
+```
+
 **Complete custom configuration:**
 ```bash
 ./setup_pet_store.sh \
