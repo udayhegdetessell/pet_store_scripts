@@ -175,7 +175,7 @@ python3 create_catalog_inventory.py \
   --service orcl \
   --user master \
   --password 12345678 \
-  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
   --catalog-rows 100 \
   --inventory-rows 200 \
   --items-rows 500 \
@@ -190,7 +190,7 @@ python3 create_catalog_inventory.py \
   --service orcl \
   --user master \
   --password 12345678 \
-  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
   --catalog-rows 100 \
   --inventory-rows 200 \
   --items-rows 500 \
@@ -203,7 +203,7 @@ python3 create_catalog_inventory.py \
 The script automatically sets up the following environment variables:
 
 ```bash
-export ORACLE_HOME="/path/to/pet_store_demo/oracle/instantclient_23_9"
+export ORACLE_HOME="/path/to/catalog_demo/oracle/instantclient_23_9"
 export LD_LIBRARY_PATH="$ORACLE_HOME:$LD_LIBRARY_PATH"
 ```
 
