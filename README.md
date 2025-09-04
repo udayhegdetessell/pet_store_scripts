@@ -13,12 +13,16 @@ This shell script automates the complete setup and execution of a Pet Store demo
 
 ## Quick Start
 
-1. **Download and make the script executable:**
+1. **Download and make the script executable for PetStore**
    ```bash
-   chmod +x setup_pet_store.sh
+   wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_pet_store.sh && chmod +x setup_pet_store.sh
+   ```
+2. **Download & make it executable for Catalog**
+   ```bash
+   sudo wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_catalog.sh && chmod +x setup_catalog.sh 
    ```
 
-2. **Run with default settings:**
+3**Run with default settings:**
    ```bash
    ./setup_pet_store.sh
    ```
