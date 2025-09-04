@@ -132,6 +132,21 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --password "DemoPass2024#"
 ```
 
+**Keep existing schema AND data
+```bash
+./setup_pet_store.sh \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --base-dir /home/azureuser \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
+  --initial-customers 25000 \
+  --initial-products 12000 \
+  --no-truncate
+```
+
 **Complete custom configuration:**
 ```bash
 ./setup_pet_store.sh \
@@ -140,8 +155,8 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --service CUSTOMPDB \
   --user pet_admin \
   --password "CustomPass123!" \
-  --base-dir /home/demo \
-  --oracle-client-lib /home/demo/pet_store_demo/oracle/instantclient_23_9 \
+  --base-dir /home/azureuser \
+  --oracle-client-lib /home/azureuser/pet_store_demo/oracle/instantclient_23_9 \
   --initial-customers 25000 \
   --initial-products 12000 \
   --order-interval 2 \
@@ -152,12 +167,43 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --drop-existing
 ```
 
+** Catalog DB: To drop existing tables and start fresh:**
+```bash
+python3 create_catalog_inventory.py \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
+  --catalog-rows 100 \
+  --inventory-rows 200 \
+  --items-rows 500 \
+  --drop-existing
+```
+
+** Catalog DB: To preserve existing data (append mode):
+``` bash
+python3 create_catalog_inventory.py \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
+  --catalog-rows 100 \
+  --inventory-rows 200 \
+  --items-rows 500 \
+  --no-truncate
+```
+
+
 ## Environment Variables
 
 The script automatically sets up the following environment variables:
 
 ```bash
-export ORACLE_HOME="/path/to/pet_store_demo/oracle/instantclient_23_9"
+export ORACLE_HOME="/path/to/catalog_demo/oracle/instantclient_23_9"
 export LD_LIBRARY_PATH="$ORACLE_HOME:$LD_LIBRARY_PATH"
 ```
 
