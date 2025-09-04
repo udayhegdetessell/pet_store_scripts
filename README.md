@@ -1,6 +1,11 @@
-# Pet Store Demo Setup Script
+# Pet Store & Catalog Demo Setup Scripts
 
-This shell script automates the complete setup and execution of a Pet Store demo environment with Oracle Database connectivity. It handles Oracle Instant Client installation, Python dependencies, script downloads, and database operations.
+This repository contains shell scripts that automate the complete setup and execution of demo environments with Oracle Database connectivity. It handles Oracle Instant Client installation, Python dependencies, script downloads, and database operations.
+
+## Available Demos
+
+1. **Pet Store Demo** - Complete e-commerce pet store with customers, products, orders, and pets
+2. **Catalog Demo** - Inventory management system with catalog, inventory, and store items
 
 ## Prerequisites
 
@@ -13,40 +18,78 @@ This shell script automates the complete setup and execution of a Pet Store demo
 
 ## Quick Start
 
-1. **Download and make the script executable for PetStore**
+### Pet Store Demo
+
+1. **Download and make the script executable:**
    ```bash
    wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_pet_store.sh && chmod +x setup_pet_store.sh
    ```
-2. **Download & make it executable for Catalog**
+
+2. **Run with default settings:**
    ```bash
-   sudo wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_catalog.sh && chmod +x setup_catalog.sh 
+   ./setup_pet_store.sh --service ORCL --user master --password 12345678
    ```
 
-3**Run with default settings:**
+### Catalog Demo
+
+1. **Download and make the script executable:**
    ```bash
-   ./setup_pet_store.sh
+   wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_catalog.sh && chmod +x setup_catalog.sh
    ```
 
-3. **Run with custom database connection:**
+2. **Run with default settings:**
    ```bash
-   ./setup_pet_store.sh --host mydb.example.com --user myuser --password mypass
+   ./setup_catalog.sh --service ORCL --user master --password 12345678
    ```
 
-## What the Script Does
+## What the Scripts Do
 
-### Setup Phase
+### Pet Store Demo (`setup_pet_store.sh`)
+
+**Setup Phase:**
 1. Creates `pet_store_demo` directory structure
 2. Downloads Oracle Instant Client (23.9.0.25.07)
 3. Configures Oracle environment variables
 4. Installs Python dependencies (`faker`, `oracledb`)
 5. Downloads Python scripts from GitHub repository
 
-### Execution Phase
+**Execution Phase:**
 1. **Schema Creation** - Creates database schema and tables
 2. **Data Generation** - Populates database with sample data
 3. **Row Count Verification** - Validates data creation
 
+**Tables Created:**
+- `customers` - Customer information
+- `suppliers` - Supplier details
+- `employees` - Employee records
+- `products` - Product catalog
+- `pets` - Pet information
+- `orders` - Order transactions
+- `order_items` - Order line items
+- `pet_care_logs` - Pet care history
+- `oracle_datatypes_demo` - Oracle data types demonstration
+
+### Catalog Demo (`setup_catalog.sh`)
+
+**Setup Phase:**
+1. Creates `catalog_demo` directory structure
+2. Downloads Oracle Instant Client (23.9.0.25.07)
+3. Configures Oracle environment variables
+4. Installs Python dependencies (`faker`, `oracledb`)
+5. Downloads Python script from GitHub repository
+
+**Execution Phase:**
+1. **Table Creation** - Creates catalog, inventory, and store_items tables
+2. **Data Generation** - Populates tables with realistic fake data
+
+**Tables Created:**
+- `catalog` - Product catalog information
+- `inventory` - Inventory management with warehouse locations
+- `store_items` - Individual product items with detailed attributes
+
 ## Command Line Options
+
+### Pet Store Demo (`setup_pet_store.sh`)
 
 | Option | Description | Default Value |
 |--------|-------------|---------------|
@@ -67,18 +110,49 @@ This shell script automates the complete setup and execution of a Pet Store demo
 | `--drop-existing` | Drop existing schema (flag) | Not set |
 | `--help` | Show usage information | - |
 
+### Catalog Demo (`setup_catalog.sh`)
+
+| Option | Description | Default Value |
+|--------|-------------|---------------|
+| `--host HOST` | Database host address | `127.0.0.1` |
+| `--port PORT` | Database port number | `1521` |
+| `--service SERVICE` | Database service name | `ORCL` |
+| `--user USER` | Database username | `master` |
+| `--password PASSWORD` | Database password | `12345678` |
+| `--oracle-client-lib PATH` | Oracle client library path | `/home/azureuser/catalog_demo/oracle/instantclient_23_9` |
+| `--catalog-rows NUM` | Number of catalog records | `1000` |
+| `--inventory-rows NUM` | Number of inventory records | `2000` |
+| `--items-rows NUM` | Number of items records | `5000` |
+| `--base-dir PATH` | Base installation directory | `/home/azureuser` |
+| `--drop-existing` | Drop existing tables (flag) | Not set |
+| `--no-truncate` | Skip truncating tables (flag) | Not set |
+| `--verbose` | Enable verbose output (flag) | Not set |
+| `--help` | Show usage information | - |
+
 ## Usage Examples
 
-### Basic Usage
+### Pet Store Demo
 
 **Run with all defaults:**
 ```bash
-./setup_pet_store.sh
+./setup_pet_store.sh --service ORCL --user master --password 12345678
 ```
 
 **Show help information:**
 ```bash
 ./setup_pet_store.sh --help
+```
+
+### Catalog Demo
+
+**Run with all defaults:**
+```bash
+./setup_catalog.sh --service ORCL --user master --password 12345678
+```
+
+**Show help information:**
+```bash
+./setup_catalog.sh --help
 ```
 
 ### Database Connection Examples
@@ -171,34 +245,61 @@ This shell script automates the complete setup and execution of a Pet Store demo
   --drop-existing
 ```
 
-** Catalog DB: To drop existing tables and start fresh:**
+### Catalog Demo Examples
+
+**Custom row counts:**
 ```bash
-python3 create_catalog_inventory.py \
+./setup_catalog.sh \
   --host localhost \
   --port 1521 \
   --service orcl \
   --user master \
   --password 12345678 \
-  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
-  --catalog-rows 100 \
-  --inventory-rows 200 \
-  --items-rows 500 \
+  --catalog-rows 1000 \
+  --inventory-rows 2000 \
+  --items-rows 5000
+```
+
+**Drop existing tables and start fresh:**
+```bash
+./setup_catalog.sh \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --catalog-rows 1000 \
+  --inventory-rows 2000 \
+  --items-rows 5000 \
   --drop-existing
 ```
 
-** Catalog DB: To preserve existing data (append mode):
-``` bash
-python3 create_catalog_inventory.py \
+**Preserve existing data (append mode):**
+```bash
+./setup_catalog.sh \
   --host localhost \
   --port 1521 \
   --service orcl \
   --user master \
   --password 12345678 \
-  --oracle-client-lib /home/azureuser/catalog_demo/oracle/instantclient_23_9 \
-  --catalog-rows 100 \
-  --inventory-rows 200 \
-  --items-rows 500 \
+  --catalog-rows 1000 \
+  --inventory-rows 2000 \
+  --items-rows 5000 \
   --no-truncate
+```
+
+**Verbose output:**
+```bash
+./setup_catalog.sh \
+  --host localhost \
+  --port 1521 \
+  --service orcl \
+  --user master \
+  --password 12345678 \
+  --catalog-rows 1000 \
+  --inventory-rows 2000 \
+  --items-rows 5000 \
+  --verbose
 ```
 
 
@@ -215,6 +316,7 @@ These are added to `~/.bashrc` for persistence across sessions.
 
 ## Directory Structure
 
+### Pet Store Demo
 After successful execution, the following structure is created:
 
 ```
@@ -225,6 +327,18 @@ After successful execution, the following structure is created:
 ├── create_schema.py                  # Schema creation script
 ├── generate_data.py                  # Data generation script
 ├── row_count.py                      # Row count verification script
+└── instantclient-basiclite-linux.x64-23.9.0.25.07.zip
+```
+
+### Catalog Demo
+After successful execution, the following structure is created:
+
+```
+{base-dir}/catalog_demo/
+├── oracle/
+│   ├── instantclient_23_9/          # Oracle Instant Client files
+│   └── META-INF/
+├── create_catalog_inventory.py       # Catalog demo script
 └── instantclient-basiclite-linux.x64-23.9.0.25.07.zip
 ```
 
@@ -285,8 +399,36 @@ If the script fails partway through:
 
 ## Python Scripts
 
-The script downloads and executes three Python scripts:
+### Pet Store Demo Scripts
+The `setup_pet_store.sh` script downloads and executes three Python scripts:
 
 1. **`create_schema.py`** - Creates database schema and tables
 2. **`generate_data.py`** - Generates sample data with configurable parameters
 3. **`row_count.py`** - Verifies data creation by counting rows
+
+### Catalog Demo Scripts
+The `setup_catalog.sh` script downloads and executes one Python script:
+
+1. **`create_catalog_inventory.py`** - Creates catalog, inventory, and store_items tables with fake data
+
+### Standalone Usage
+You can also run the Python scripts directly:
+
+**Pet Store Demo:**
+```bash
+python3 create_schema.py --host localhost --service ORCL --user master --password 12345678
+python3 generate_data.py --host localhost --service ORCL --user master --password 12345678
+python3 row_count.py --host localhost --service ORCL --user master --password 12345678
+```
+
+**Catalog Demo:**
+```bash
+python3 create_catalog_inventory.py \
+  --host localhost \
+  --service ORCL \
+  --user master \
+  --password 12345678 \
+  --catalog-rows 1000 \
+  --inventory-rows 2000 \
+  --items-rows 5000
+```
