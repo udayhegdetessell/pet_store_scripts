@@ -15,7 +15,7 @@ This shell script automates the complete setup and execution of a Pet Store demo
 
 1. **Download and make the script executable:**
    ```bash
-   chmod +x setup_pet_store.sh
+   sudo wget https://raw.githubusercontent.com/udayhegdetessell/pet_store_scripts/main/setup_catalog.sh && chmod +x setup_catalog.sh
    ```
 
 2. **Run with default settings:**
